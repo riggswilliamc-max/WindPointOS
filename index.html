@@ -385,8 +385,8 @@
       <p class="hero-sub">Home inspection software built by a working inspector, not a software company. Forms that fill themselves, reports that stay organized, and a tool that keeps up with you on site.</p>
 
       <div class="signup" id="signup">
-        <form class="signup-form" data-signup>
-          <input type="email" placeholder="you@email.com" required aria-label="Email address">
+        <form class="signup-form" data-signup action="https://formspree.io/f/xgaeavwo" method="POST">
+          <input type="email" name="email" placeholder="you@email.com" required aria-label="Email address">
           <button class="btn btn-primary" type="submit">Get Early Access</button>
         </form>
         <div class="signup-success">You're on the list. We'll email you when the beta opens.</div>
@@ -444,8 +444,8 @@
         <h2>Be the first to try it</h2>
         <p>Early access spots are limited to a small group of inspectors before the public beta.</p>
       </div>
-      <form class="signup-form" data-signup style="max-width:440px;margin:0 auto;">
-        <input type="email" placeholder="you@email.com" required aria-label="Email address">
+      <form class="signup-form" data-signup action="https://formspree.io/f/xgaeavwo" method="POST" style="max-width:440px;margin:0 auto;">
+        <input type="email" name="email" placeholder="you@email.com" required aria-label="Email address">
         <button class="btn btn-primary" type="submit">Get Early Access</button>
       </form>
       <div class="signup-success" style="max-width:440px;margin:0 auto;"></div>
@@ -476,17 +476,42 @@
   document.querySelectorAll('[data-signup]').forEach(function(form){
     form.addEventListener('submit', function(e){
       e.preventDefault();
-      // TODO: wire this up to a real list — Mailchimp, Brevo, or a simple Google Sheet + Apps Script
-      // endpoint all work fine for a pre-launch list this size. Currently client-side only.
       var wrap = form.closest('.signup') || form.parentElement;
       var success = wrap.querySelector('.signup-success');
-      form.style.display = 'none';
-      if(success){
-        success.style.display = 'flex';
-        if(!success.textContent.trim()){
-          success.textContent = "You're on the list. We'll email you when the beta opens.";
+      var btn = form.querySelector('button');
+      var originalBtnText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+
+      fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'Accept': 'application/json' }
+      }).then(function(response){
+        if(response.ok){
+          form.style.display = 'none';
+          if(success){
+            success.style.display = 'flex';
+            if(!success.textContent.trim()){
+              success.textContent = "You're on the list. We'll email you when the beta opens.";
+            }
+          }
+        } else {
+          btn.disabled = false;
+          btn.textContent = originalBtnText;
+          if(success){
+            success.style.display = 'flex';
+            success.textContent = "Something went wrong. Please try again in a moment.";
+          }
         }
-      }
+      }).catch(function(){
+        btn.disabled = false;
+        btn.textContent = originalBtnText;
+        if(success){
+          success.style.display = 'flex';
+          success.textContent = "Something went wrong. Please try again in a moment.";
+        }
+      });
     });
   });
 </script>
